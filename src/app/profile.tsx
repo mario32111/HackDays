@@ -19,7 +19,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { authSession } from '@/constants/auth';
 
 interface MenuItemProps {
-  iconName: { ios: string; android: string; web: string };
+  iconName: any;
   title: string;
   value?: string;
   onPress?: () => void;
