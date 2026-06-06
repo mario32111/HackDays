@@ -73,7 +73,7 @@ export default function CatalogScreen() {
             <ThemedText style={styles.headerTitle} type="subtitle">
               Catálogo
             </ThemedText>
-            <View style={{ width: 40 }} /> {/* spacer */}
+            <View style={{ width: 40 }} />
           </View>
         </SafeAreaView>
 

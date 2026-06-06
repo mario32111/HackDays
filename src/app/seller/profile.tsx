@@ -75,7 +75,7 @@ export default function BusinessProfileScreen() {
             <ThemedText style={styles.headerTitle} type="subtitle">
               Perfil de Empresa
             </ThemedText>
-            <View style={{ width: 40 }} /> {/* spacer */}
+            <View style={{ width: 40 }} />
           </View>
         </SafeAreaView>
 
