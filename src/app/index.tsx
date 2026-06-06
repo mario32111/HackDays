@@ -19,6 +19,8 @@ import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { authSession } from '@/constants/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/config/firebase';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -28,12 +30,46 @@ export default function WelcomeScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const isDark = scheme === 'dark';
 
-  const handleLogin = () => {
-    authSession.isLoggedIn = true;
-    router.push('/explore');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMessage('Por favor ingresa correo y contraseña.');
+      return;
+    }
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      authSession.isLoggedIn = true;
+      router.push('/explore');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Error al iniciar sesión.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (!email || !password) {
+      setErrorMessage('Por favor ingresa correo y contraseña.');
+      return;
+    }
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      authSession.isLoggedIn = true;
+      router.push('/explore');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Error al crear cuenta.');
+      console.log(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -138,27 +174,36 @@ export default function WelcomeScreen() {
               </Pressable>
             </View>
 
+            {/* Error Message */}
+            {errorMessage ? (
+              <ThemedText style={{ color: '#EF4444', textAlign: 'center', marginBottom: Spacing.three }}>
+                {errorMessage}
+              </ThemedText>
+            ) : null}
+
             {/* Action Buttons */}
             <View style={styles.buttonContainer}>
               {/* Iniciar Sesión */}
               <Pressable 
                 onPress={handleLogin}
+                disabled={loading}
                 style={({ pressed }) => [
                   styles.buttonPrimary,
-                  { backgroundColor: theme.text },
+                  { backgroundColor: theme.text, opacity: loading ? 0.7 : 1 },
                   pressed && styles.buttonPressed
                 ]}>
                 <ThemedText style={[styles.buttonPrimaryText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                  Iniciar Sesión
+                  {loading ? 'Cargando...' : 'Iniciar Sesión'}
                 </ThemedText>
               </Pressable>
 
               {/* Crear Cuenta */}
               <Pressable 
-                onPress={handleLogin}
+                onPress={handleRegister}
+                disabled={loading}
                 style={({ pressed }) => [
                   styles.buttonSecondary,
-                  { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' },
+                  { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7', opacity: loading ? 0.7 : 1 },
                   pressed && styles.buttonPressed
                 ]}>
                 <ThemedText style={[styles.buttonSecondaryText, { color: theme.text }]}>
