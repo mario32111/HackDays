@@ -57,23 +57,9 @@ export default function CatalogScreen() {
         <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
           {/* Header Row */}
           <View style={styles.headerRow}>
-            <Pressable 
-              onPress={() => router.back()} 
-              style={({ pressed }) => [
-                styles.backButton,
-                { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7' },
-                pressed && styles.pressed
-              ]}>
-              <SymbolView
-                name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' } as any}
-                size={20}
-                tintColor={theme.text}
-              />
-            </Pressable>
             <ThemedText style={styles.headerTitle} type="subtitle">
               Catálogo
             </ThemedText>
-            <View style={{ width: 40 }} />
           </View>
         </SafeAreaView>
 
@@ -195,7 +181,7 @@ export default function CatalogScreen() {
                 pressed && styles.buttonPressed
               ]}>
               <ThemedText style={[styles.buttonPrimaryText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                Continuar
+                Ver Vista Previa
               </ThemedText>
             </Pressable>
           </View>
@@ -223,18 +209,11 @@ const styles = StyleSheet.create({
     height: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     marginTop: Spacing.one,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '800',
   },
   scrollContent: {
