@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   dismissPressable: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   bottomSheet: {
     borderTopLeftRadius: 32,
