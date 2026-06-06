@@ -1,33 +1,57 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Pressable,
+  View,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
+import { useRouter } from 'expo-router';
 
-import { ExternalLink } from '@/components/external-link';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { authSession } from '@/constants/auth';
 
-export default function TabTwoScreen() {
+export default function ProfileSelectorScreen() {
   const safeAreaInsets = useSafeAreaInsets();
+  const router = useRouter();
+  const theme = useTheme();
+  const scheme = useColorScheme() ?? 'light';
+  const isDark = scheme === 'dark';
+
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!authSession.isLoggedIn) {
+      router.replace('/');
+    }
+  }, [router]);
+
   const insets = {
     ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
+    bottom: safeAreaInsets.bottom + Spacing.three,
   };
-  const theme = useTheme();
 
   const contentPlatformStyle = Platform.select({
     android: {
-      paddingTop: insets.top,
+      paddingTop: insets.top + Spacing.two,
+      paddingLeft: insets.left,
+      paddingRight: insets.right,
+      paddingBottom: insets.bottom,
+    },
+    ios: {
+      paddingTop: insets.top + Spacing.two,
       paddingLeft: insets.left,
       paddingRight: insets.right,
       paddingBottom: insets.bottom,
     },
     web: {
-      paddingTop: Spacing.six,
+      paddingTop: Spacing.five,
       paddingBottom: Spacing.four,
     },
   });
@@ -38,88 +62,165 @@ export default function TabTwoScreen() {
       contentInset={insets}
       contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
       <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
+        
+        {/* Back Button */}
+        <View style={styles.headerRow}>
+          <Pressable 
+            onPress={() => {
+              authSession.isLoggedIn = false;
+              router.replace('/');
+            }} 
+            style={({ pressed }) => [
+              styles.backButton,
+              { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7' },
+              pressed && styles.buttonPressed
+            ]}>
+            <SymbolView
+              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+              size={20}
+              tintColor={theme.text}
+            />
+          </Pressable>
+        </View>
+
+        {/* Title Section */}
+        <View style={styles.titleContainer}>
+          <ThemedText type="subtitle" style={styles.title}>
+            ¿Cómo quieres usar la app?
           </ThemedText>
+          <ThemedText style={styles.subtitle} themeColor="textSecondary">
+            Elige tu perfil para personalizar tu experiencia en Durango.
+          </ThemedText>
+        </View>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
+        {/* Profile Options */}
+        <View style={styles.optionsContainer}>
+          
+          {/* Option 1: Explorar y Comprar */}
+          <Pressable
+            onPress={() => setSelectedProfile('user')}
+            style={({ pressed }) => [
+              styles.card,
+              { 
+                borderColor: selectedProfile === 'user'
+                  ? theme.text 
+                  : (isDark ? '#2E3135' : '#E2E8F0'),
+                backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF'
+              },
+              pressed && styles.cardPressed
+            ]}>
+            
+            {/* Background Decorative Circle */}
+            <View style={[
+              styles.cardCircle, 
+              { backgroundColor: isDark ? '#2E3135' : '#F1F5F9', opacity: selectedProfile === 'user' ? 0.4 : 0.2 }
+            ]} />
+
+            <View style={styles.cardHeader}>
+              <View style={[
+                styles.iconContainer, 
+                { backgroundColor: isDark ? '#FFFFFF' : '#000000' }
+              ]}>
                 <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
+                  name={{ ios: 'bag', android: 'shopping_bag', web: 'shopping_bag' }}
+                  size={24}
+                  tintColor={isDark ? '#000000' : '#FFFFFF'}
                 />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+              </View>
+              
+              {selectedProfile === 'user' && (
+                <View style={[styles.badge, { backgroundColor: theme.text }]}>
+                  <SymbolView
+                    name={{ ios: 'checkmark', android: 'check', web: 'check' }}
+                    size={12}
+                    tintColor={isDark ? '#000000' : '#FFFFFF'}
+                  />
+                </View>
+              )}
+            </View>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
+            <View style={styles.cardTextContainer}>
+              <ThemedText style={styles.cardTitle}>
+                Explorar y Comprar
               </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
+              <ThemedText style={styles.cardDescription} themeColor="textSecondary">
+                Quiero descubrir lugares y ofertas locales.
+              </ThemedText>
+            </View>
+          </Pressable>
 
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+          {/* Option 2: Tengo un Negocio */}
+          <Pressable
+            onPress={() => setSelectedProfile('business')}
+            style={({ pressed }) => [
+              styles.card,
+              { 
+                borderColor: selectedProfile === 'business'
+                  ? theme.text 
+                  : (isDark ? '#2E3135' : '#E2E8F0'),
+                backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF'
+              },
+              pressed && styles.cardPressed
+            ]}>
+            
+            {/* Background Decorative Circle */}
+            <View style={[
+              styles.cardCircle, 
+              { backgroundColor: isDark ? '#2E3135' : '#F1F5F9', opacity: selectedProfile === 'business' ? 0.4 : 0.2 }
+            ]} />
 
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+            <View style={styles.cardHeader}>
+              <View style={[
+                styles.iconContainer, 
+                { backgroundColor: isDark ? '#FFFFFF' : '#000000' }
+              ]}>
+                <SymbolView
+                  name={{ ios: 'storefront', android: 'store', web: 'store' }}
+                  size={24}
+                  tintColor={isDark ? '#000000' : '#FFFFFF'}
+                />
+              </View>
+              
+              {selectedProfile === 'business' && (
+                <View style={[styles.badge, { backgroundColor: theme.text }]}>
+                  <SymbolView
+                    name={{ ios: 'checkmark', android: 'check', web: 'check' }}
+                    size={12}
+                    tintColor={isDark ? '#000000' : '#FFFFFF'}
+                  />
+                </View>
+              )}
+            </View>
 
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
+            <View style={styles.cardTextContainer}>
+              <ThemedText style={styles.cardTitle}>
+                Tengo un Negocio
+              </ThemedText>
+              <ThemedText style={styles.cardDescription} themeColor="textSecondary">
+                Quiero vender y conectar con más clientes.
+              </ThemedText>
+            </View>
+          </Pressable>
+
+        </View>
+
+        {/* Continue Button */}
+        {selectedProfile && (
+          <View style={styles.footer}>
+            <Pressable 
+              onPress={() => router.push('/interests')}
+              style={({ pressed }) => [
+                styles.continueButton,
+                { backgroundColor: theme.text },
+                pressed && styles.buttonPressed
+              ]}>
+              <ThemedText style={[styles.continueButtonText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
+                Siguiente
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
+
       </ThemedView>
     </ScrollView>
   );
@@ -136,45 +237,149 @@ const styles = StyleSheet.create({
   container: {
     maxWidth: MaxContentWidth,
     flexGrow: 1,
+    paddingHorizontal: Spacing.four,
+  },
+  headerRow: {
+    height: 48,
+    justifyContent: 'center',
+    marginBottom: Spacing.two,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleContainer: {
+    marginBottom: Spacing.five,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    lineHeight: 38,
+    letterSpacing: -0.5,
+    marginBottom: Spacing.two,
+  },
+  subtitle: {
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  optionsContainer: {
     gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+    marginBottom: Spacing.five,
   },
-  centerText: {
-    textAlign: 'center',
+  card: {
+    borderWidth: 1.5,
+    borderRadius: 24,
+    padding: Spacing.four,
+    position: 'relative',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+        cursor: 'pointer',
+        transition: 'transform 0.2s ease, border-color 0.2s ease',
+      }
+    })
   },
-  pressed: {
-    opacity: 0.7,
+  cardPressed: {
+    transform: [{ scale: 0.98 }],
   },
-  linkButton: {
+  cardCircle: {
+    position: 'absolute',
+    right: -40,
+    bottom: -40,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+  },
+  cardHeader: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.four,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     justifyContent: 'center',
-    gap: Spacing.one,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.12)',
+      }
+    })
+  },
+  badge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
+  cardTextContainer: {
+    zIndex: 1,
   },
-  collapsibleContent: {
-    alignItems: 'center',
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: Spacing.one,
   },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
+  cardDescription: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  footer: {
     marginTop: Spacing.two,
+    marginBottom: Spacing.four,
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+  continueButton: {
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.08)',
+      }
+    })
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  buttonPressed: {
+    opacity: 0.85,
   },
 });
