@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   useColorScheme,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,26 +18,19 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { authSession } from '@/constants/auth';
 
-export default function SignUpScreen() {
+export default function RegisterBusinessScreen() {
   const router = useRouter();
   const theme = useTheme();
   const scheme = useColorScheme() ?? 'light';
   const isDark = scheme === 'dark';
 
-  const [nombre, setNombre] = useState('');
-  const [apellido, setApellido] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [email, setEmail] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [category, setCategory] = useState('');
+  const [address, setAddress] = useState('Av. 20 de Noviembre, Centro');
 
-  const handleRegister = () => {
-    authSession.isLoggedIn = true;
-    if (authSession.role === 'business') {
-      router.replace('/seller/register' as any);
-    } else {
-      router.replace('/interests');
-    }
+  const handleContinue = () => {
+    router.push('/seller/bio' as any);
   };
 
   return (
@@ -59,7 +53,7 @@ export default function SignUpScreen() {
                   pressed && styles.pressed
                 ]}>
                 <SymbolView
-                  name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+                  name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' } as any}
                   size={20}
                   tintColor={theme.text}
                 />
@@ -69,94 +63,94 @@ export default function SignUpScreen() {
             {/* Header Title & Subtitle */}
             <View style={styles.headerContainer}>
               <ThemedText type="subtitle" style={styles.welcomeTitle}>
-                Crear Cuenta
+                Registra tu Negocio
               </ThemedText>
               <ThemedText style={styles.subtitleText} themeColor="textSecondary">
-                Regístrate para continuar explorando Durango.
+                Comencemos con los detalles básicos.
               </ThemedText>
             </View>
 
-            {/* Inputs Section */}
+            {/* Form Fields */}
             <View style={styles.formContainer}>
-              {/* Nombre Input */}
+              {/* Business Name */}
               <View style={[
                 styles.inputWrapper, 
                 { borderColor: isDark ? '#2E3135' : '#E2E8F0', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
               ]}>
                 <SymbolView
-                  name={{ ios: 'person', android: 'person', web: 'person' }}
+                  name={{ ios: 'storefront', android: 'storefront', web: 'storefront' } as any}
                   size={20}
                   tintColor={isDark ? '#8E8E93' : '#A0AEC0'}
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="Nombre"
+                  placeholder="Nombre del Negocio"
                   placeholderTextColor={isDark ? '#636366' : '#A0AEC0'}
-                  value={nombre}
-                  onChangeText={setNombre}
+                  value={businessName}
+                  onChangeText={setBusinessName}
                   style={[styles.textInput, { color: theme.text }]}
                 />
               </View>
 
-              {/* Apellido Input */}
+              {/* Category */}
               <View style={[
                 styles.inputWrapper, 
                 { borderColor: isDark ? '#2E3135' : '#E2E8F0', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
               ]}>
                 <SymbolView
-                  name={{ ios: 'person', android: 'person', web: 'person' }}
+                  name={{ ios: 'tag', android: 'tag', web: 'tag' } as any}
                   size={20}
                   tintColor={isDark ? '#8E8E93' : '#A0AEC0'}
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="Apellido"
+                  placeholder="Categoría (ej. Restaurante)"
                   placeholderTextColor={isDark ? '#636366' : '#A0AEC0'}
-                  value={apellido}
-                  onChangeText={setApellido}
+                  value={category}
+                  onChangeText={setCategory}
                   style={[styles.textInput, { color: theme.text }]}
                 />
               </View>
 
-              {/* Teléfono Input */}
-              <View style={[
-                styles.inputWrapper, 
-                { borderColor: isDark ? '#2E3135' : '#E2E8F0', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
-              ]}>
+              {/* Ubicacion Label */}
+              <View style={styles.sectionLabelRow}>
                 <SymbolView
-                  name={{ ios: 'phone', android: 'phone', web: 'phone' }}
-                  size={20}
-                  tintColor={isDark ? '#8E8E93' : '#A0AEC0'}
-                  style={styles.inputIcon}
+                  name={{ ios: 'mappin.and.ellipse', android: 'location_on', web: 'location_on' } as any}
+                  size={18}
+                  tintColor={theme.text}
+                  style={styles.labelIcon}
                 />
-                <TextInput
-                  placeholder="Teléfono"
-                  placeholderTextColor={isDark ? '#636366' : '#A0AEC0'}
-                  value={telefono}
-                  onChangeText={setTelefono}
-                  keyboardType="phone-pad"
-                  style={[styles.textInput, { color: theme.text }]}
-                />
+                <ThemedText type="smallBold" style={styles.labelText}>
+                  Ubicación
+                </ThemedText>
               </View>
 
-              {/* Correo Input */}
+              {/* Styled Map Box */}
+              <View style={styles.mapContainer}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&h=300&fit=crop' }}
+                  style={styles.mapImage}
+                />
+                {/* Central pin marker overlay */}
+                <View style={styles.pinCircle}>
+                  <SymbolView
+                    name={{ ios: 'mappin', android: 'location_pin', web: 'location_pin' } as any}
+                    size={20}
+                    tintColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Address input */}
               <View style={[
                 styles.inputWrapper, 
                 { borderColor: isDark ? '#2E3135' : '#E2E8F0', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
               ]}>
-                <SymbolView
-                  name={{ ios: 'envelope', android: 'mail', web: 'mail' }}
-                  size={20}
-                  tintColor={isDark ? '#8E8E93' : '#A0AEC0'}
-                  style={styles.inputIcon}
-                />
                 <TextInput
-                  placeholder="Correo electrónico"
+                  placeholder="Dirección del Negocio"
                   placeholderTextColor={isDark ? '#636366' : '#A0AEC0'}
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
+                  value={address}
+                  onChangeText={setAddress}
                   style={[styles.textInput, { color: theme.text }]}
                 />
               </View>
@@ -164,25 +158,15 @@ export default function SignUpScreen() {
 
             {/* Action Buttons */}
             <View style={styles.buttonContainer}>
-              {/* Registrarse */}
               <Pressable 
-                onPress={handleRegister}
+                onPress={handleContinue}
                 style={({ pressed }) => [
                   styles.buttonPrimary,
                   { backgroundColor: theme.text },
                   pressed && styles.buttonPressed
                 ]}>
                 <ThemedText style={[styles.buttonPrimaryText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                  Registrarse
-                </ThemedText>
-              </Pressable>
-
-              {/* ¿Ya tienes cuenta? Iniciar Sesión */}
-              <Pressable 
-                onPress={() => router.replace('/')}
-                style={styles.signInLinkContainer}>
-                <ThemedText type="smallBold" style={styles.signInLinkText}>
-                  ¿Ya tienes cuenta? Iniciar Sesión
+                  Continuar
                 </ThemedText>
               </Pressable>
             </View>
@@ -263,8 +247,48 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     height: '100%',
   },
+  sectionLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.two,
+    marginBottom: Spacing.one,
+  },
+  labelIcon: {
+    marginRight: Spacing.one,
+  },
+  labelText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  mapContainer: {
+    height: 180,
+    borderRadius: 24,
+    overflow: 'hidden',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+  },
+  mapImage: {
+    width: '100%',
+    height: '100%',
+  },
+  pinCircle: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
   buttonContainer: {
-    gap: Spacing.three,
     marginTop: Spacing.two,
   },
   buttonPrimary: {
@@ -290,13 +314,6 @@ const styles = StyleSheet.create({
   buttonPrimaryText: {
     fontSize: 16,
     fontWeight: '700',
-  },
-  signInLinkContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.one,
-  },
-  signInLinkText: {
-    fontSize: 14,
   },
   pressed: {
     opacity: 0.82,
