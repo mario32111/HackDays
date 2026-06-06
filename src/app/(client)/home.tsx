@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SymbolView } from 'expo-symbols';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -20,6 +21,7 @@ import { VoiceAiOverlay } from '@/components/voice-ai-overlay';
 
 export default function HomeScreen() {
   const safeAreaInsets = useSafeAreaInsets();
+  const router = useRouter();
   const theme = useTheme();
   const scheme = useColorScheme() ?? 'light';
   const isDark = scheme === 'dark';
@@ -73,10 +75,14 @@ export default function HomeScreen() {
           </View>
           
           {/* User Avatar Circle */}
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop' }}
-            style={styles.avatar}
-          />
+          <Pressable 
+            onPress={() => router.push('/profile')}
+            style={({ pressed }) => pressed && styles.pressed}>
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop' }}
+              style={styles.avatar}
+            />
+          </Pressable>
         </View>
 
         {/* Search Bar */}
