@@ -208,11 +208,19 @@ export default function ProfileSelectorScreen() {
         {selectedProfile && (
           <View style={styles.footer}>
             <Pressable 
-              onPress={() => router.push('/interests')}
+              onPress={() => {
+                if (selectedProfile === 'user') {
+                  router.push('/signup' as any);
+                }
+              }}
               style={({ pressed }) => [
                 styles.continueButton,
-                { backgroundColor: theme.text },
-                pressed && styles.buttonPressed
+                { 
+                  backgroundColor: selectedProfile === 'user' 
+                    ? theme.text 
+                    : (isDark ? '#2E3135' : '#CBD5E1') 
+                },
+                pressed && selectedProfile === 'user' && styles.buttonPressed
               ]}>
               <ThemedText style={[styles.continueButtonText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
                 Siguiente
