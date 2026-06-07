@@ -92,7 +92,10 @@ export default function WelcomeScreen() {
             
             {/* Logo Section */}
             <View style={[styles.logoContainer, isDark ? styles.logoContainerDark : styles.logoContainerLight]}>
-              <ThemedText style={[styles.logoText, { color: isDark ? '#000000' : '#FFFFFF' }]}>Dgo</ThemedText>
+              <Image
+                source={require('../../assets/images/logo.png')}
+                style={styles.logoImage}
+              />
             </View>
 
             {/* Header Title & Subtitle */}
@@ -280,6 +283,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.four,
@@ -304,9 +308,9 @@ const styles = StyleSheet.create({
   logoContainerDark: {
     backgroundColor: '#FFFFFF',
   },
-  logoText: {
-    fontSize: 22,
-    fontWeight: 'bold',
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   headerContainer: {
     marginBottom: Spacing.four,
