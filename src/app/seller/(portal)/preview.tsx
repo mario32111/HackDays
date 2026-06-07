@@ -8,7 +8,6 @@ import {
   useColorScheme,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 
@@ -42,22 +41,6 @@ export default function PreviewScreen() {
             />
             {/* Dark gradient overlay style */}
             <View style={styles.coverOverlay} />
-
-            {/* Back Button Overlay */}
-            <SafeAreaView style={styles.backButtonSafeArea} edges={['top', 'left']}>
-              <Pressable 
-                onPress={() => router.back()} 
-                style={({ pressed }) => [
-                  styles.backButton,
-                  pressed && styles.pressed
-                ]}>
-                <SymbolView
-                  name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' } as any}
-                  size={20}
-                  tintColor="#FFFFFF"
-                />
-              </Pressable>
-            </SafeAreaView>
 
             {/* Business Info Overlay */}
             <View style={styles.infoOverlayContainer}>
@@ -202,20 +185,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
-  },
-  backButtonSafeArea: {
-    position: 'absolute',
-    top: 0,
-    left: Spacing.four,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: Spacing.one,
   },
   infoOverlayContainer: {
     position: 'absolute',
