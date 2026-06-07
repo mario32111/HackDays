@@ -14,6 +14,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { auth } from '@/config/firebase';
+import { updateUserInterests } from '@/services/db';
 
 const INTERESTS = [
   'Alimentos',
@@ -43,14 +45,34 @@ export default function InterestsScreen() {
     }
   };
 
-  const handleNext = () => {
-    if (selectedInterests.length >= 3) {
-      router.replace('/home');
+  const [loading, setLoading] = useState(false);
+
+  const handleNext = async () => {
+    if (selectedInterests.length >= 3 && auth.currentUser) {
+      setLoading(true);
+      try {
+        await updateUserInterests(auth.currentUser.uid, selectedInterests);
+        router.replace('/home');
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+      }
     }
   };
 
-  const handleSkip = () => {
-    router.replace('/home');
+  const handleSkip = async () => {
+    if (auth.currentUser) {
+      setLoading(true);
+      try {
+        await updateUserInterests(auth.currentUser.uid, []);
+        router.replace('/home');
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+      }
+    } else {
+      router.replace('/home');
+    }
   };
 
   const isNextEnabled = selectedInterests.length >= 3;
@@ -127,28 +149,27 @@ export default function InterestsScreen() {
 
         {/* Footer Button */}
         <View style={styles.footer}>
-          <Pressable
-            disabled={!isNextEnabled}
+          <Pressable 
             onPress={handleNext}
+            disabled={selectedInterests.length < 3 || loading}
             style={({ pressed }) => [
               styles.nextButton,
               { 
-                backgroundColor: isNextEnabled 
+                backgroundColor: selectedInterests.length >= 3 
                   ? theme.text 
-                  : (isDark ? '#2E3135' : '#CBD5E1') 
+                  : (isDark ? '#2E3135' : '#CBD5E1'),
+                opacity: loading ? 0.7 : 1
               },
-              pressed && isNextEnabled && styles.pressed,
+              pressed && selectedInterests.length >= 3 && styles.pressed,
             ]}>
             <ThemedText 
               style={[
                 styles.nextButtonText, 
                 { 
-                  color: isNextEnabled 
-                    ? (isDark ? '#000000' : '#FFFFFF') 
-                    : (isDark ? '#8E8E93' : '#94A3B8') 
+                  color: isDark ? '#000000' : '#FFFFFF'
                 }
               ]}>
-              Siguiente
+              {loading ? 'Cargando...' : 'Siguiente'}
             </ThemedText>
           </Pressable>
         </View>

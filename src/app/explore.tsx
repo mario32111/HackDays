@@ -16,6 +16,8 @@ import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { authSession } from '@/constants/auth';
+import { auth } from '@/config/firebase';
+import { updateUserRole } from '@/services/db';
 
 export default function ProfileSelectorScreen() {
   const safeAreaInsets = useSafeAreaInsets();
@@ -25,12 +27,34 @@ export default function ProfileSelectorScreen() {
   const isDark = scheme === 'dark';
 
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
-    if (!authSession.isLoggedIn) {
+    if (!authSession.isLoggedIn && !auth.currentUser) {
       router.replace('/');
     }
   }, [router]);
+
+  const handleNext = async () => {
+    if (selectedProfile && auth.currentUser) {
+      setLoading(true);
+      try {
+        const roleToSave = selectedProfile === 'business' ? 'seller' : 'user';
+        await updateUserRole(auth.currentUser.uid, roleToSave);
+        authSession.role = selectedProfile as 'user' | 'business';
+        
+        if (roleToSave === 'seller') {
+          router.replace('/seller/register' as any);
+        } else {
+          router.replace('/interests');
+        }
+      } catch (error) {
+        console.error("Error updating role:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   const insets = {
     ...safeAreaInsets,
@@ -208,23 +232,20 @@ export default function ProfileSelectorScreen() {
         {selectedProfile && (
           <View style={styles.footer}>
             <Pressable 
-              onPress={() => {
-                if (selectedProfile) {
-                  authSession.role = selectedProfile as 'user' | 'business';
-                  router.push('/signup' as any);
-                }
-              }}
+              onPress={handleNext}
+              disabled={loading}
               style={({ pressed }) => [
                 styles.continueButton,
                 { 
                   backgroundColor: selectedProfile 
                     ? theme.text 
-                    : (isDark ? '#2E3135' : '#CBD5E1') 
+                    : (isDark ? '#2E3135' : '#CBD5E1'),
+                  opacity: loading ? 0.7 : 1
                 },
                 pressed && selectedProfile && styles.buttonPressed
               ]}>
               <ThemedText style={[styles.continueButtonText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                Siguiente
+                {loading ? 'Cargando...' : 'Siguiente'}
               </ThemedText>
             </Pressable>
           </View>

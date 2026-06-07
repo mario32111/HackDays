@@ -18,6 +18,9 @@ import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { authSession } from '@/constants/auth';
+import { auth } from '@/config/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserProfile } from '@/services/db';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -29,13 +32,27 @@ export default function SignUpScreen() {
   const [apellido, setApellido] = useState('');
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleRegister = () => {
-    authSession.isLoggedIn = true;
-    if (authSession.role === 'business') {
-      router.replace('/seller/register' as any);
-    } else {
-      router.replace('/interests');
+  const handleRegister = async () => {
+    if (!nombre || !apellido || !telefono || !email || !password) {
+      setErrorMessage('Por favor completa todos los campos.');
+      return;
+    }
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await createUserProfile(userCredential.user.uid, userCredential.user.email, nombre, apellido, telefono);
+      
+      authSession.isLoggedIn = true;
+      router.replace('/explore');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Error al crear cuenta.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -160,20 +177,49 @@ export default function SignUpScreen() {
                   style={[styles.textInput, { color: theme.text }]}
                 />
               </View>
+
+              {/* Password Input */}
+              <View style={[
+                styles.inputWrapper, 
+                { borderColor: isDark ? '#2E3135' : '#E2E8F0', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
+              ]}>
+                <SymbolView
+                  name={{ ios: 'lock', android: 'lock', web: 'lock' }}
+                  size={20}
+                  tintColor={isDark ? '#8E8E93' : '#A0AEC0'}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  placeholder="Contraseña"
+                  placeholderTextColor={isDark ? '#636366' : '#A0AEC0'}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  style={[styles.textInput, { color: theme.text }]}
+                />
+              </View>
             </View>
+
+            {errorMessage ? (
+              <ThemedText style={{ color: '#EF4444', textAlign: 'center', marginBottom: Spacing.three }}>
+                {errorMessage}
+              </ThemedText>
+            ) : null}
 
             {/* Action Buttons */}
             <View style={styles.buttonContainer}>
-              {/* Registrarse */}
+              {/* Siguiente */}
               <Pressable 
                 onPress={handleRegister}
+                disabled={loading}
                 style={({ pressed }) => [
                   styles.buttonPrimary,
-                  { backgroundColor: theme.text },
+                  { backgroundColor: theme.text, opacity: loading ? 0.7 : 1 },
                   pressed && styles.buttonPressed
                 ]}>
                 <ThemedText style={[styles.buttonPrimaryText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                  Registrarse
+                  {loading ? 'Cargando...' : 'Siguiente'}
                 </ThemedText>
               </Pressable>
 

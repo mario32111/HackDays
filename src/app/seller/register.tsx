@@ -18,6 +18,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { auth } from '@/config/firebase';
+import { updateBusinessBasicInfo } from '@/services/db';
 
 export default function RegisterBusinessScreen() {
   const router = useRouter();
@@ -28,9 +30,23 @@ export default function RegisterBusinessScreen() {
   const [businessName, setBusinessName] = useState('');
   const [category, setCategory] = useState('');
   const [address, setAddress] = useState('Av. 20 de Noviembre, Centro');
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
-    router.push('/seller/bio' as any);
+  const handleContinue = async () => {
+    if (!businessName || !category || !address || !auth.currentUser) return;
+    
+    setLoading(true);
+    try {
+      await updateBusinessBasicInfo(auth.currentUser.uid, {
+        businessName,
+        businessCategory: category,
+        businessAddress: address,
+      });
+      router.push('/seller/bio' as any);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
   };
 
   return (
@@ -160,13 +176,17 @@ export default function RegisterBusinessScreen() {
             <View style={styles.buttonContainer}>
               <Pressable 
                 onPress={handleContinue}
+                disabled={loading || !businessName || !category || !address}
                 style={({ pressed }) => [
                   styles.buttonPrimary,
-                  { backgroundColor: theme.text },
+                  { 
+                    backgroundColor: (businessName && category && address) ? theme.text : (isDark ? '#2E3135' : '#CBD5E1'),
+                    opacity: loading ? 0.7 : 1
+                  },
                   pressed && styles.buttonPressed
                 ]}>
                 <ThemedText style={[styles.buttonPrimaryText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                  Continuar
+                  {loading ? 'Guardando...' : 'Continuar'}
                 </ThemedText>
               </Pressable>
             </View>

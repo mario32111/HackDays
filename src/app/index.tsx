@@ -20,7 +20,8 @@ import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { authSession } from '@/constants/auth';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/config/firebase';
+import { auth, db } from '@/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -43,30 +44,37 @@ export default function WelcomeScreen() {
     setLoading(true);
     setErrorMessage('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
       authSession.isLoggedIn = true;
-      router.push('/explore');
+      
+      // Obtener el perfil del usuario desde Firestore
+      const userRef = doc(db, 'users', userCred.user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        authSession.role = userData.role === 'seller' ? 'business' : 'user';
+        
+        if (userData.role === 'seller') {
+          if (userData.businessInfoRegistered) {
+            router.push('/seller/catalog' as any);
+          } else {
+            router.push('/seller/register' as any);
+          }
+        } else {
+          // Si es usuario normal, validamos si ya registró sus intereses
+          if (userData.interestsRegistered) {
+            router.push('/home');
+          } else {
+            router.push('/interests');
+          }
+        }
+      } else {
+        // Fallback si no tiene perfil
+        router.push('/explore');
+      }
     } catch (error: any) {
       setErrorMessage(error.message || 'Error al iniciar sesión.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async () => {
-    if (!email || !password) {
-      setErrorMessage('Por favor ingresa correo y contraseña.');
-      return;
-    }
-    setLoading(true);
-    setErrorMessage('');
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      authSession.isLoggedIn = true;
-      router.push('/explore');
-    } catch (error: any) {
-      setErrorMessage(error.message || 'Error al crear cuenta.');
-      console.log(error.message);
     } finally {
       setLoading(false);
     }
@@ -199,7 +207,7 @@ export default function WelcomeScreen() {
 
               {/* Crear Cuenta */}
               <Pressable 
-                onPress={handleRegister}
+                onPress={() => router.push('/signup')}
                 disabled={loading}
                 style={({ pressed }) => [
                   styles.buttonSecondary,
