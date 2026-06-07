@@ -1,16 +1,18 @@
-import React from 'react';
-import {
-  StyleSheet,
-  Pressable,
-  View,
-  Platform,
-  ScrollView,
-  useColorScheme,
-  Image,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
+import React from 'react';
+import {
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  useColorScheme,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -23,7 +25,7 @@ export default function CatalogScreen() {
   const scheme = useColorScheme() ?? 'light';
   const isDark = scheme === 'dark';
 
-  const products = [
+  const [products, setProducts] = React.useState([
     {
       id: '1',
       name: 'Pizza Margarita',
@@ -45,7 +47,36 @@ export default function CatalogScreen() {
       status: 'Agotado',
       image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=120&h=120&fit=crop',
     },
-  ];
+  ]);
+
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [newItemType, setNewItemType] = React.useState<'Producto' | 'Promoción'>('Producto');
+  const [newItemName, setNewItemName] = React.useState('');
+  const [newItemPrice, setNewItemPrice] = React.useState('');
+
+  const handleOpenModal = (type: 'Producto' | 'Promoción') => {
+    setNewItemType(type);
+    setNewItemName('');
+    setNewItemPrice('');
+    setModalVisible(true);
+  };
+
+  const handleAddItem = () => {
+    if (!newItemName || !newItemPrice) return;
+    
+    const newItem = {
+      id: Math.random().toString(),
+      name: newItemName,
+      price: `$${newItemPrice}`,
+      status: 'Activo',
+      image: newItemType === 'Producto' 
+        ? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&h=120&fit=crop' // placeholder genérico
+        : 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=120&h=120&fit=crop', // placeholder promo
+    };
+
+    setProducts([newItem, ...products]);
+    setModalVisible(false);
+  };
 
   const handleContinue = () => {
     router.push('/seller/preview' as any);
@@ -70,7 +101,9 @@ export default function CatalogScreen() {
           {/* Top Quick Actions Tab Buttons */}
           <View style={styles.tabButtonsRow}>
             {/* + Producto */}
-            <Pressable style={[styles.tabButton, styles.tabProductButton]}>
+            <Pressable 
+              onPress={() => handleOpenModal('Producto')}
+              style={[styles.tabButton, styles.tabProductButton]}>
               <SymbolView
                 name={{ ios: 'plus', android: 'add', web: 'add' } as any}
                 size={16}
@@ -81,7 +114,9 @@ export default function CatalogScreen() {
             </Pressable>
 
             {/* Promoción */}
-            <Pressable style={[
+            <Pressable 
+              onPress={() => handleOpenModal('Promoción')}
+              style={[
               styles.tabButton, 
               styles.tabPromoButton, 
               { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: isDark ? '#2E3135' : '#E2E8F0' }
@@ -188,6 +223,55 @@ export default function CatalogScreen() {
 
         </ScrollView>
       </View>
+
+      {/* Add Item Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <ThemedView style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <ThemedText style={styles.modalTitle}>Agregar {newItemType}</ThemedText>
+              <Pressable onPress={() => setModalVisible(false)} style={styles.closeButton}>
+                <SymbolView name={{ ios: 'xmark', android: 'close', web: 'close' } as any} size={24} tintColor={theme.text} />
+              </Pressable>
+            </View>
+
+            <View style={[styles.inputWrapper, { borderColor: isDark ? '#2E3135' : '#E2E8F0', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+              <TextInput
+                placeholder={`Nombre del ${newItemType}`}
+                placeholderTextColor={isDark ? '#636366' : '#A0AEC0'}
+                value={newItemName}
+                onChangeText={setNewItemName}
+                style={[styles.textInput, { color: theme.text }]}
+              />
+            </View>
+
+            <View style={[styles.inputWrapper, { borderColor: isDark ? '#2E3135' : '#E2E8F0', backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', marginTop: 16 }]}>
+              <TextInput
+                placeholder="Precio (ej. 150)"
+                placeholderTextColor={isDark ? '#636366' : '#A0AEC0'}
+                value={newItemPrice}
+                onChangeText={setNewItemPrice}
+                keyboardType="numeric"
+                style={[styles.textInput, { color: theme.text }]}
+              />
+            </View>
+
+            <Pressable 
+              onPress={handleAddItem}
+              style={[styles.buttonPrimary, { backgroundColor: theme.text, marginTop: 24 }]}>
+              <ThemedText style={[styles.buttonPrimaryText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
+                Guardar
+              </ThemedText>
+            </Pressable>
+          </ThemedView>
+        </View>
+      </Modal>
+
     </ThemedView>
   );
 }
@@ -345,5 +429,43 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.99 }],
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: Spacing.four,
+    paddingBottom: Platform.OS === 'ios' ? 40 : Spacing.four,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.four,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  closeButton: {
+    padding: Spacing.one,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingHorizontal: Spacing.three,
+    height: 56,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    height: '100%',
   },
 });

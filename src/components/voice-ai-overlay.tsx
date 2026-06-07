@@ -17,9 +17,11 @@ import { useTheme } from '@/hooks/use-theme';
 interface VoiceAiOverlayProps {
   visible: boolean;
   onClose: () => void;
+  title?: string;
+  prompt?: string;
 }
 
-export function VoiceAiOverlay({ visible, onClose }: VoiceAiOverlayProps) {
+export function VoiceAiOverlay({ visible, onClose, title, prompt }: VoiceAiOverlayProps) {
   const theme = useTheme();
   const scheme = useColorScheme() ?? 'light';
   const isDark = scheme === 'dark';
@@ -137,10 +139,10 @@ export function VoiceAiOverlay({ visible, onClose }: VoiceAiOverlayProps) {
           {/* Content Description */}
           <View style={styles.textContainer}>
             <ThemedText style={styles.micTitle}>
-              Escuchando tus antojos...
+              {title || 'Escuchando tus antojos...'}
             </ThemedText>
             <ThemedText style={styles.micPrompt} themeColor="textSecondary">
-              {"\"Quiero unos tacos al pastor cerca del centro...\""}
+              {prompt || '"Quiero unos tacos al pastor cerca del centro..."'}
             </ThemedText>
           </View>
 

@@ -59,14 +59,7 @@ export default function ClientLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: 'Pedidos',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'clipboard', android: 'assignment', web: 'assignment' }}
-              size={22}
-              tintColor={color}
-            />
-          ),
+          href: null,
         }}
       />
     </Tabs>
