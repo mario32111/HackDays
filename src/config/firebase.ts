@@ -1,7 +1,7 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
 // @ts-ignore
 import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
-import { getDataConnect } from 'firebase/data-connect';
+import { getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configuración de Firebase usando variables de entorno de Expo
@@ -31,12 +31,7 @@ try {
   auth = getAuth(app);
 }
 
-// Inicializa Firebase Data Connect (SQL Connect)
-// Apuntando al servicio "localmatch-417d6-service" de acuerdo a la imagen
-const dataConnect = getDataConnect(app, {
-  service: 'localmatch-417d6-service',
-  location: 'us-central1', // Por defecto us-central1
-  connector: 'default' // Reemplaza 'default' con el nombre de tu conector si es diferente
-});
+// Inicializa Cloud Firestore
+const db = getFirestore(app);
 
-export { app, auth, dataConnect };
+export { app, auth, db };

@@ -18,6 +18,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { auth } from '@/config/firebase';
+import { updateBusinessBio } from '@/services/db';
 
 export default function CreateBioScreen() {
   const router = useRouter();
@@ -28,6 +30,7 @@ export default function CreateBioScreen() {
   const [keywords, setKeywords] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedBio, setGeneratedBio] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleGenerateBio = () => {
     if (!keywords.trim()) return;
@@ -40,8 +43,19 @@ export default function CreateBioScreen() {
     }, 1200);
   };
 
-  const handleFinish = () => {
-    router.replace('/seller/catalog' as any);
+  const handleFinish = async () => {
+    if (!generatedBio || !auth.currentUser) return;
+    setLoading(true);
+    try {
+      await updateBusinessBio(auth.currentUser.uid, {
+        businessKeywords: keywords,
+        businessBio: generatedBio
+      });
+      router.replace('/seller/catalog' as any);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
   };
 
   return (
@@ -159,12 +173,14 @@ export default function CreateBioScreen() {
             <View style={styles.footerContainer}>
               <Pressable 
                 onPress={handleFinish}
+                disabled={loading || !generatedBio}
                 style={({ pressed }) => [
                   styles.buttonPrimary,
                   { 
                     backgroundColor: generatedBio 
                       ? theme.text 
-                      : (isDark ? '#3A3A3C' : '#8E8E93') 
+                      : (isDark ? '#3A3A3C' : '#8E8E93'),
+                    opacity: loading ? 0.7 : 1
                   },
                   pressed && styles.buttonPressed
                 ]}>
@@ -176,7 +192,7 @@ export default function CreateBioScreen() {
                       : (isDark ? '#8E8E93' : '#E2E8F0') 
                   }
                 ]}>
-                  Finalizar y Entrar
+                  {loading ? 'Finalizando...' : 'Finalizar y Entrar'}
                 </ThemedText>
               </Pressable>
             </View>
