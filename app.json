@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "localmatch",
+    "name": "LocalMatch",
     "slug": "localmatch",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "localmatch",
     "userInterfaceStyle": "automatic",
     "ios": {
