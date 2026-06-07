@@ -6,6 +6,7 @@ import {
   Animated,
   Platform,
   ScrollView,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SymbolView } from 'expo-symbols';
@@ -58,10 +59,10 @@ const CARDS_DATA: CardData[] = [
 
 export default function DiscoverScreen() {
   const safeAreaInsets = useSafeAreaInsets();
-  
+
   const [selectedFilter, setSelectedFilter] = useState('Antojos');
   const [currentIndex, setCurrentIndex] = useState(0);
-  
+
   // Animation value for sliding cards left/right
   const [slideAnim] = useState(() => new Animated.Value(0));
   const rotateAnim = slideAnim.interpolate({
@@ -74,6 +75,24 @@ export default function DiscoverScreen() {
   });
 
   const activeCard = CARDS_DATA[currentIndex];
+
+  const handleOpenMap = () => {
+    if (!activeCard) return;
+    const latitude = 24.0277;
+    const longitude = -104.6538;
+    const query = encodeURIComponent(`${activeCard.title}, Durango, Mexico`);
+
+    const url = Platform.select({
+      ios: `maps:0,0?q=${query}&ll=${latitude},${longitude}`,
+      android: `geo:0,0?q=${latitude},${longitude}(${query})`,
+      default: `https://www.google.com/maps/search/?api=1&query=${query}`
+    });
+
+    Linking.openURL(url).catch((err) => {
+      console.error("Failed to open map URL:", err);
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    });
+  };
 
   const triggerSwipeAnimation = (direction: 'left' | 'right', callback: () => void) => {
     Animated.timing(slideAnim, {
@@ -116,7 +135,7 @@ export default function DiscoverScreen() {
   return (
     <View style={[styles.outerContainer, { backgroundColor: '#000000' }]}>
       <View style={[styles.container, { paddingTop: insets.top + Spacing.two }]}>
-        
+
         {/* Header Discover */}
         <View style={styles.headerRow}>
           <Pressable style={({ pressed }) => pressed && styles.pressed}>
@@ -178,21 +197,33 @@ export default function DiscoverScreen() {
                   opacity: opacityAnim,
                 }
               ]}>
-              
+
               {/* Photo */}
               <View style={styles.cardImageWrapper}>
                 <Image
                   source={{ uri: activeCard.image }}
                   style={styles.cardImage}
                 />
-                
+
+                {/* Location button */}
+                <Pressable 
+                  onPress={handleOpenMap}
+                  style={({ pressed }) => [
+                    styles.locationButton,
+                    pressed && styles.pressed
+                  ]}>
+                  <ThemedText style={styles.locationButtonText}>
+                    Ver ubicación
+                  </ThemedText>
+                </Pressable>
+
                 {/* Order button */}
                 <Pressable style={({ pressed }) => [
                   styles.orderButton,
                   pressed && styles.pressed
                 ]}>
                   <ThemedText style={styles.orderButtonText}>
-                    Ordenar Ahora
+                    Agendar visita
                   </ThemedText>
                 </Pressable>
               </View>
@@ -210,11 +241,11 @@ export default function DiscoverScreen() {
                     {activeCard.rating} <ThemedText type="small" style={styles.categoryDivider}>• {activeCard.category}</ThemedText>
                   </ThemedText>
                 </View>
-                
+
                 <ThemedText style={styles.cardTitle}>
                   {activeCard.title}
                 </ThemedText>
-                
+
                 <ThemedText style={styles.cardDescription}>
                   {activeCard.description}
                 </ThemedText>
@@ -428,6 +459,34 @@ const styles = StyleSheet.create({
     })
   },
   orderButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  locationButton: {
+    position: 'absolute',
+    bottom: Spacing.three,
+    left: Spacing.three,
+    backgroundColor: '#000000',
+    paddingHorizontal: Spacing.four,
+    paddingVertical: 12,
+    borderRadius: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+      }
+    })
+  },
+  locationButtonText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
